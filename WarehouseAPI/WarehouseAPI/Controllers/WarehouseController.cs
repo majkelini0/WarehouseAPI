@@ -29,25 +29,22 @@ public class WarehouseController : ControllerBase
             return NotFound($"Warehouse with given id does not exist");
         }
         
-        if(await _warehouseRepository.IsSuchOrder(productWarehouse) == false)
+        int? res = await _warehouseRepository.IsSuchOrder(productWarehouse);
+        if(res == null)
         {
             return NotFound($"There is no such order");
         }
+
+        if (res.HasValue && await _warehouseRepository.WasOrderFulfilled(productWarehouse, res.Value) == true)
+        {
+            return Conflict("The order has already been fulfilled");
+        }
         
+        if(await _warehouseRepository.UpdateOrderFulfilledAt(productWarehouse, res.Value) == false)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, "Failed to update Order FulfilledAt datetime");
+        }
         
-        
-        
-        
-        // int result;
-        // try
-        // {
-        //     result = await _warehouseRepository.UpdateProductWarehouse(productWarehouse);
-        // }
-        // catch (Exception e)
-        // {
-        //     return StatusCode(StatusCodes.Status404NotFound);
-        // }
-        // return Ok(result);
         return Ok();
     }
 }

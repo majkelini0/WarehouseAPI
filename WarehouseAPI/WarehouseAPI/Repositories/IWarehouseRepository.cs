@@ -6,5 +6,7 @@ public interface IWarehouseRepository
 {
     Task<bool> DoesProductExists(ProductWarehouse productWarehouse);
     Task<bool> DoesWarehouseExists(ProductWarehouse productWarehouse);
-    Task<bool> IsSuchOrder(ProductWarehouse productWarehouse);
+    Task<int?> IsSuchOrder(ProductWarehouse productWarehouse);
+    Task<bool> WasOrderFulfilled(ProductWarehouse productWarehouse, int idOrder);
+    Task<bool> UpdateOrderFulfilledAt(ProductWarehouse productWarehouse, int idOrder);
 }
