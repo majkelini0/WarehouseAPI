@@ -16,7 +16,7 @@ public class WarehouseController : ControllerBase
         _warehouseRepository = warehouseRepository;
     }
     
-    [HttpPost]
+    [HttpPost("UpdateProductWarehouse")]
     public async Task<IActionResult> UpdateProductWarehouse(ProductWarehouse productWarehouse)
     {
         if(await _warehouseRepository.DoesProductExists(productWarehouse) == false)
@@ -52,6 +52,19 @@ public class WarehouseController : ControllerBase
             return StatusCode((int)HttpStatusCode.InternalServerError, "Failed to insert into ProductWarehouse table");
         }
         
+        return Ok(idProductWarehouse);
+    }
+
+    [HttpPost("UpdateProductWarehouseProcedure")]
+    public async Task<IActionResult> UpdateProductWarehouseProcedure(ProductWarehouse productWarehouse)
+    {
+        int? idProductWarehouse = await _warehouseRepository.InsertIntoProductWarehouseProcedure(productWarehouse);
+        Console.WriteLine(idProductWarehouse);
+        if (idProductWarehouse == null)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, "Failed to insert into ProductWarehouse table");
+        }
+
         return Ok(idProductWarehouse);
     }
 }

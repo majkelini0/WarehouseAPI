@@ -10,4 +10,5 @@ public interface IWarehouseRepository
     Task<bool> WasOrderFulfilled(ProductWarehouse productWarehouse, int idOrder);
     Task<bool> UpdateOrderFulfilledAt(ProductWarehouse productWarehouse, int idOrder);
     Task<int?> InsertIntoProductWarehouse(ProductWarehouse productWarehouse, int idOrder);
+    Task<int?> InsertIntoProductWarehouseProcedure(ProductWarehouse productWarehouse);
 }

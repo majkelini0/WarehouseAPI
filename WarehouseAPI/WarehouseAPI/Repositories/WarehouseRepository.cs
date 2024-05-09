@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using System.Data;
+using System.Data.Common;
 using Microsoft.Data.SqlClient;
 using WarehouseButBetter.Models;
 
@@ -160,5 +161,28 @@ public class WarehouseRepository : IWarehouseRepository
             await transaction.RollbackAsync();
         }
         return null;
+    }
+
+    public async Task<int?> InsertIntoProductWarehouseProcedure(ProductWarehouse productWarehouse)
+    {
+        // Zalozenie: procedura AddProductToWarehouse znajduje sie w bazie danych !
+        
+        using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
+        using SqlCommand command = new SqlCommand("AddProductToWarehouse", connection);
+        command.CommandType = CommandType.StoredProcedure;
+        
+        command.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
+        command.Parameters.AddWithValue("@IdWarehouse", productWarehouse.IdWarehouse);
+        command.Parameters.AddWithValue("@Amount", productWarehouse.Amount);
+        command.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
+        
+        await connection.OpenAsync();
+        var idProductWarehouse = await command.ExecuteScalarAsync();
+
+        if (idProductWarehouse == null)
+        {
+            return null;
+        }
+        return (int) idProductWarehouse;
     }
 }
