@@ -35,7 +35,7 @@ public class WarehouseController : ControllerBase
             return NotFound($"There is no such order");
         }
 
-        if (res.HasValue && await _warehouseRepository.WasOrderFulfilled(productWarehouse, res.Value) == true)
+        if (await _warehouseRepository.WasOrderFulfilled(productWarehouse, res.Value) == true)
         {
             return Conflict("The order has already been fulfilled");
         }
@@ -44,7 +44,14 @@ public class WarehouseController : ControllerBase
         {
             return StatusCode((int)HttpStatusCode.InternalServerError, "Failed to update Order FulfilledAt datetime");
         }
+
         
-        return Ok();
+        int? idProductWarehouse = await _warehouseRepository.InsertIntoProductWarehouse(productWarehouse, res.Value);
+        if (idProductWarehouse == null)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, "Failed to insert into ProductWarehouse table");
+        }
+        
+        return Ok(idProductWarehouse);
     }
 }

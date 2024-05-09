@@ -107,4 +107,58 @@ public class WarehouseRepository : IWarehouseRepository
         }
         return true;
     }
+
+    public async Task<int?> InsertIntoProductWarehouse(ProductWarehouse productWarehouse, int idOrder)
+    {
+        using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
+        using SqlCommand command = new SqlCommand();
+        command.Connection = connection;
+        
+        command.CommandText = "SELECT Price FROM Product WHERE IdProduct = @IdProduct";
+        command.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
+        
+        await connection.OpenAsync();
+        DbTransaction transaction = connection.BeginTransaction();
+        command.Transaction = (SqlTransaction)transaction;
+
+        try
+        {
+            var price = await command.ExecuteScalarAsync();
+            command.Parameters.Clear();
+            
+            if (price == null)
+            {
+                return null;
+            }
+            var totalPrice = (decimal)price * productWarehouse.Amount;
+            
+            command.CommandText = "INSERT INTO Product_Warehouse (IdWarehouse, IdProduct, IdOrder, Amount, Price, CreatedAt) " +
+                                  "OUTPUT INSERTED.IdProductWarehouse VALUES (@IdWarehouse, @IdProduct, @IdOrder, @Amount, @Price, GETDATE())";
+            command.Parameters.AddWithValue("@IdWarehouse", productWarehouse.IdWarehouse);
+            command.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
+            command.Parameters.AddWithValue("@IdOrder", idOrder);
+            command.Parameters.AddWithValue("@Amount", productWarehouse.Amount);
+            command.Parameters.AddWithValue("@Price", totalPrice);
+
+            var idProductWarehouse = await command.ExecuteScalarAsync();
+            if (idProductWarehouse == null)
+            {
+                return null;
+            }
+            
+            await transaction.CommitAsync();
+            return (int) idProductWarehouse;
+        }
+        catch (SqlException e)
+        {
+            Console.WriteLine(e.Message);
+            await transaction.RollbackAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            await transaction.RollbackAsync();
+        }
+        return null;
+    }
 }
