@@ -14,7 +14,7 @@ public class WarehouseRepository : IWarehouseRepository
         _configuration = configuration;
     }
 
-    public async Task<bool> DoesProductExists(ProductWarehouse productWarehouse)
+    public async Task<bool> DoesProductExists(ProductWarehouseRequestModel productWarehouseRequestModel)
     {
         using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
         using SqlCommand command = new SqlCommand();
@@ -22,7 +22,7 @@ public class WarehouseRepository : IWarehouseRepository
 
         var query = "SELECT 1 FROM Product where idproduct = @IdProduct";
         command.CommandText = query;
-        command.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
+        command.Parameters.AddWithValue("@IdProduct", productWarehouseRequestModel.IdProduct);
 
         await connection.OpenAsync();
         var res = await command.ExecuteScalarAsync();
@@ -30,7 +30,7 @@ public class WarehouseRepository : IWarehouseRepository
         return res is not null;
     }
 
-    public async Task<bool> DoesWarehouseExists(ProductWarehouse productWarehouse)
+    public async Task<bool> DoesWarehouseExists(ProductWarehouseRequestModel productWarehouseRequestModel)
     {
         using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
         using SqlCommand command = new SqlCommand();
@@ -38,7 +38,7 @@ public class WarehouseRepository : IWarehouseRepository
 
         var query = "SELECT 1 FROM Warehouse where idwarehouse = @IdWarehouse";
         command.CommandText = query;
-        command.Parameters.AddWithValue("@IdWarehouse", productWarehouse.IdWarehouse);
+        command.Parameters.AddWithValue("@IdWarehouse", productWarehouseRequestModel.IdWarehouse);
 
         await connection.OpenAsync();
         var res = await command.ExecuteScalarAsync();
@@ -46,7 +46,7 @@ public class WarehouseRepository : IWarehouseRepository
         return res is not null;
     }
 
-    public async Task<int?> IsSuchOrder(ProductWarehouse productWarehouse)
+    public async Task<int?> IsSuchOrder(ProductWarehouseRequestModel productWarehouseRequestModel)
     {
         using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
         using SqlCommand command = new SqlCommand();
@@ -54,8 +54,8 @@ public class WarehouseRepository : IWarehouseRepository
 
         var query = "SELECT IdOrder FROM [Order] where idproduct = @IdProduct and amount = @Amount";
         command.CommandText = query;
-        command.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
-        command.Parameters.AddWithValue("@Amount", productWarehouse.Amount);
+        command.Parameters.AddWithValue("@IdProduct", productWarehouseRequestModel.IdProduct);
+        command.Parameters.AddWithValue("@Amount", productWarehouseRequestModel.Amount);
 
         await connection.OpenAsync();
         var res = await command.ExecuteScalarAsync();
@@ -68,7 +68,7 @@ public class WarehouseRepository : IWarehouseRepository
         return (int)res;
     }
 
-    public async Task<bool> WasOrderFulfilled(ProductWarehouse productWarehouse, int idOrder)
+    public async Task<bool> WasOrderFulfilled(int idOrder)
     {
         using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
         using SqlCommand command = new SqlCommand();
@@ -85,11 +85,10 @@ public class WarehouseRepository : IWarehouseRepository
         {
             return true;
         }
-
         return false;
     }
 
-    public async Task<bool> UpdateOrderFulfilledAt(ProductWarehouse productWarehouse, int idOrder)
+    public async Task<bool> UpdateOrderFulfilledAt(int idOrder)
     {
         using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
         using SqlCommand command = new SqlCommand();
@@ -109,14 +108,14 @@ public class WarehouseRepository : IWarehouseRepository
         return true;
     }
 
-    public async Task<int?> InsertIntoProductWarehouse(ProductWarehouse productWarehouse, int idOrder)
+    public async Task<int?> InsertIntoProductWarehouse(ProductWarehouseRequestModel productWarehouseRequestModel, int idOrder)
     {
         using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
         using SqlCommand command = new SqlCommand();
         command.Connection = connection;
         
         command.CommandText = "SELECT Price FROM Product WHERE IdProduct = @IdProduct";
-        command.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
+        command.Parameters.AddWithValue("@IdProduct", productWarehouseRequestModel.IdProduct);
         
         await connection.OpenAsync();
         DbTransaction transaction = connection.BeginTransaction();
@@ -131,14 +130,14 @@ public class WarehouseRepository : IWarehouseRepository
             {
                 return null;
             }
-            var totalPrice = (decimal)price * productWarehouse.Amount;
+            var totalPrice = (decimal)price * productWarehouseRequestModel.Amount;
             
             command.CommandText = "INSERT INTO Product_Warehouse (IdWarehouse, IdProduct, IdOrder, Amount, Price, CreatedAt) " +
                                   "OUTPUT INSERTED.IdProductWarehouse VALUES (@IdWarehouse, @IdProduct, @IdOrder, @Amount, @Price, GETDATE())";
-            command.Parameters.AddWithValue("@IdWarehouse", productWarehouse.IdWarehouse);
-            command.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
+            command.Parameters.AddWithValue("@IdWarehouse", productWarehouseRequestModel.IdWarehouse);
+            command.Parameters.AddWithValue("@IdProduct", productWarehouseRequestModel.IdProduct);
             command.Parameters.AddWithValue("@IdOrder", idOrder);
-            command.Parameters.AddWithValue("@Amount", productWarehouse.Amount);
+            command.Parameters.AddWithValue("@Amount", productWarehouseRequestModel.Amount);
             command.Parameters.AddWithValue("@Price", totalPrice);
 
             var idProductWarehouse = await command.ExecuteScalarAsync();
@@ -163,7 +162,7 @@ public class WarehouseRepository : IWarehouseRepository
         return null;
     }
 
-    public async Task<int?> InsertIntoProductWarehouseProcedure(ProductWarehouse productWarehouse)
+    public async Task<int?> InsertIntoProductWarehouseProcedure(ProductWarehouseRequestModel productWarehouseRequestModel)
     {
         // Zalozenie: procedura AddProductToWarehouse znajduje sie w bazie danych !
         
@@ -171,9 +170,9 @@ public class WarehouseRepository : IWarehouseRepository
         using SqlCommand command = new SqlCommand("AddProductToWarehouse", connection);
         command.CommandType = CommandType.StoredProcedure;
         
-        command.Parameters.AddWithValue("@IdProduct", productWarehouse.IdProduct);
-        command.Parameters.AddWithValue("@IdWarehouse", productWarehouse.IdWarehouse);
-        command.Parameters.AddWithValue("@Amount", productWarehouse.Amount);
+        command.Parameters.AddWithValue("@IdProduct", productWarehouseRequestModel.IdProduct);
+        command.Parameters.AddWithValue("@IdWarehouse", productWarehouseRequestModel.IdWarehouse);
+        command.Parameters.AddWithValue("@Amount", productWarehouseRequestModel.Amount);
         command.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
         
         await connection.OpenAsync();

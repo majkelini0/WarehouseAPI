@@ -17,36 +17,36 @@ public class WarehouseController : ControllerBase
     }
     
     [HttpPost("UpdateProductWarehouse")]
-    public async Task<IActionResult> UpdateProductWarehouse(ProductWarehouse productWarehouse)
+    public async Task<IActionResult> UpdateProductWarehouse(ProductWarehouseRequestModel productWarehouseRequestModel)
     {
-        if(await _warehouseRepository.DoesProductExists(productWarehouse) == false)
+        if(await _warehouseRepository.DoesProductExists(productWarehouseRequestModel) == false)
         {
             return NotFound($"Product with given id does not exist");
         }
 
-        if (await _warehouseRepository.DoesWarehouseExists(productWarehouse) == false)
+        if (await _warehouseRepository.DoesWarehouseExists(productWarehouseRequestModel) == false)
         {
             return NotFound($"Warehouse with given id does not exist");
         }
         
-        int? res = await _warehouseRepository.IsSuchOrder(productWarehouse);
+        int? res = await _warehouseRepository.IsSuchOrder(productWarehouseRequestModel);
         if(res == null)
         {
             return NotFound($"There is no such order");
         }
 
-        if (await _warehouseRepository.WasOrderFulfilled(productWarehouse, res.Value) == true)
+        if (await _warehouseRepository.WasOrderFulfilled(res.Value) == true)
         {
             return Conflict("The order has already been fulfilled");
         }
         
-        if(await _warehouseRepository.UpdateOrderFulfilledAt(productWarehouse, res.Value) == false)
+        if(await _warehouseRepository.UpdateOrderFulfilledAt(res.Value) == false)
         {
             return StatusCode((int)HttpStatusCode.InternalServerError, "Failed to update Order FulfilledAt datetime");
         }
 
         
-        int? idProductWarehouse = await _warehouseRepository.InsertIntoProductWarehouse(productWarehouse, res.Value);
+        int? idProductWarehouse = await _warehouseRepository.InsertIntoProductWarehouse(productWarehouseRequestModel, res.Value);
         if (idProductWarehouse == null)
         {
             return StatusCode((int)HttpStatusCode.InternalServerError, "Failed to insert into ProductWarehouse table");
@@ -56,9 +56,9 @@ public class WarehouseController : ControllerBase
     }
 
     [HttpPost("UpdateProductWarehouseProcedure")]
-    public async Task<IActionResult> UpdateProductWarehouseProcedure(ProductWarehouse productWarehouse)
+    public async Task<IActionResult> UpdateProductWarehouseProcedure(ProductWarehouseRequestModel productWarehouseRequestModel)
     {
-        int? idProductWarehouse = await _warehouseRepository.InsertIntoProductWarehouseProcedure(productWarehouse);
+        int? idProductWarehouse = await _warehouseRepository.InsertIntoProductWarehouseProcedure(productWarehouseRequestModel);
         Console.WriteLine(idProductWarehouse);
         if (idProductWarehouse == null)
         {

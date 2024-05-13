@@ -2,7 +2,7 @@
 
 namespace WarehouseButBetter.Models;
 
-public class ProductWarehouse
+public class ProductWarehouseRequestModel
 {
     [Required]
     public int IdProduct { get; set; }

@@ -4,11 +4,11 @@ namespace WarehouseButBetter.Repositories;
 
 public interface IWarehouseRepository
 {
-    Task<bool> DoesProductExists(ProductWarehouse productWarehouse);
-    Task<bool> DoesWarehouseExists(ProductWarehouse productWarehouse);
-    Task<int?> IsSuchOrder(ProductWarehouse productWarehouse);
-    Task<bool> WasOrderFulfilled(ProductWarehouse productWarehouse, int idOrder);
-    Task<bool> UpdateOrderFulfilledAt(ProductWarehouse productWarehouse, int idOrder);
-    Task<int?> InsertIntoProductWarehouse(ProductWarehouse productWarehouse, int idOrder);
-    Task<int?> InsertIntoProductWarehouseProcedure(ProductWarehouse productWarehouse);
+    Task<bool> DoesProductExists(ProductWarehouseRequestModel productWarehouseRequestModel);
+    Task<bool> DoesWarehouseExists(ProductWarehouseRequestModel productWarehouseRequestModel);
+    Task<int?> IsSuchOrder(ProductWarehouseRequestModel productWarehouseRequestModel);
+    Task<bool> WasOrderFulfilled(int idOrder);
+    Task<bool> UpdateOrderFulfilledAt(int idOrder);
+    Task<int?> InsertIntoProductWarehouse(ProductWarehouseRequestModel productWarehouseRequestModel, int idOrder);
+    Task<int?> InsertIntoProductWarehouseProcedure(ProductWarehouseRequestModel productWarehouseRequestModel);
 }
